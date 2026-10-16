@@ -25,6 +25,7 @@ public sealed class TaskItemTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("\t\r\n")]
+    [InlineData("\u00a0\u2003\u2028")]
     public void Create_Should_RejectTitle_When_TitleIsBlank(string? title)
     {
         Assert.ThrowsAny<ArgumentException>(() => TaskItem.Create(title!, Priority.Medium, DateTimeOffset.UnixEpoch));

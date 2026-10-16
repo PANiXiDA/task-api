@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using PANiXiDA.TaskApi.Tasks.Application.Tasks.Abstractions;
@@ -24,11 +26,32 @@ public sealed class TasksMigrationTests(IntegrationTestFixture fixture) : Integr
         Assert.Equal(task.Id, (await context.Tasks.AsNoTracking().SingleAsync(token)).Id);
     }
 
-    [Theory(DisplayName = "Ограничения PostgreSQL отклоняют некорректные данные при прямой записи")]
-    [InlineData("UPDATE tasks SET \"Title\" = ' '", "23514")]
+    [Fact(DisplayName = "Обновление существующей БД удаляет CHECK-ограничения и сохраняет задачи")]
+    public async Task Migrate_Should_RemoveCheckConstraintsAndPreserveData_When_UpgradingInitialSchema()
+    {
+        var token = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<TasksDbContext>();
+        await context.GetService<IMigrator>().MigrateAsync("20261016162834_InitialCreate", token);
+        var task = TaskItem.Create("Существующая задача", Priority.High, DateTimeOffset.UnixEpoch);
+        await scope.ServiceProvider.GetRequiredService<ITasksRepository>().AddAsync(task, token);
+        const string countConstraintsSql = "SELECT count(*)::integer AS \"Value\" FROM pg_constraint WHERE conrelid = 'tasks'::regclass AND contype = 'c'";
+        Assert.Equal(3, await context.Database.SqlQueryRaw<int>(countConstraintsSql).SingleAsync(token));
+
+        await context.Database.MigrateAsync(token);
+
+        Assert.Equal(0, await context.Database.SqlQueryRaw<int>(countConstraintsSql).SingleAsync(token));
+        Assert.Empty(await context.Database.GetPendingMigrationsAsync(token));
+        var saved = await context.Tasks.AsNoTracking().SingleAsync(token);
+        Assert.Equal(task.Id, saved.Id);
+        Assert.Equal(task.Title, saved.Title);
+        Assert.Equal(task.Priority, saved.Priority);
+        Assert.Equal(task.CreatedAt, saved.CreatedAt);
+    }
+
+    [Theory(DisplayName = "PostgreSQL отклоняет NULL и превышение длины названия при прямой записи")]
+    [InlineData("UPDATE tasks SET \"Title\" = NULL", "23502")]
     [InlineData("UPDATE tasks SET \"Title\" = repeat('a', 201)", "22001")]
-    [InlineData("UPDATE tasks SET \"Priority\" = 'Other'", "23514")]
-    [InlineData("UPDATE tasks SET \"IsCompleted\" = true", "23514")]
     public async Task Constraints_Should_RejectInvalidData_When_BypassingDomain(string sql, string sqlState)
     {
         var token = TestContext.Current.CancellationToken;

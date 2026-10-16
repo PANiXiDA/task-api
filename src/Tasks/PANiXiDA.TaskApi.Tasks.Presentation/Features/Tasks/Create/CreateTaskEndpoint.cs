@@ -32,6 +32,6 @@ internal static class CreateTaskEndpoint
         }
 
         var task = await handler.HandleAsync(CreateTaskMapper.ToCommand(request), cancellationToken);
-        return TypedResults.Created("/tasks", CreateTaskMapper.ToResponse(task));
+        return TypedResults.Created($"/tasks/{task.Id}", CreateTaskMapper.ToResponse(task));
     }
 }

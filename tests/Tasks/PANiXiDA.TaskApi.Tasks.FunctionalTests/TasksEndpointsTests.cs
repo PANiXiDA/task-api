@@ -68,6 +68,7 @@ public sealed class TasksEndpointsTests(FunctionalTestFixture fixture) : IClassF
         using var response = await client.PostAsJsonAsync("/tasks", new { title = new string('a', 200) }, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var task = (await response.Content.ReadFromJsonAsync<CreateTaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
+        Assert.Equal($"/tasks/{task.Id}", response.Headers.Location?.OriginalString);
         Assert.Equal(Priority.Medium, task.Priority);
         Assert.False(task.IsCompleted);
         Assert.Null(task.CompletedAt);
@@ -80,6 +81,7 @@ public sealed class TasksEndpointsTests(FunctionalTestFixture fixture) : IClassF
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("\t\r\n")]
+    [InlineData("\u00a0\u2003\u2028")]
     public async Task Create_Should_Return400_When_TitleIsBlank(string? title)
     {
         await using var factory = new ApiFactory(fixture.Configuration);
@@ -209,7 +211,9 @@ public sealed class TasksEndpointsTests(FunctionalTestFixture fixture) : IClassF
     {
         using var response = await client.PostAsJsonAsync("/tasks", new { title, priority }, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        return (await response.Content.ReadFromJsonAsync<CreateTaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
+        var task = (await response.Content.ReadFromJsonAsync<CreateTaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
+        Assert.Equal($"/tasks/{task.Id}", response.Headers.Location?.OriginalString);
+        return task;
     }
 
     private sealed class RejectCompletion : SaveChangesInterceptor

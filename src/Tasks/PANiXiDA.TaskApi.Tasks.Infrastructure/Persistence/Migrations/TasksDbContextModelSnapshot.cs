@@ -55,14 +55,7 @@ namespace PANiXiDA.TaskApi.Tasks.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("tasks", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_tasks_completion", "\"IsCompleted\" = (\"CompletedAt\" IS NOT NULL)");
-
-                            t.HasCheckConstraint("ck_tasks_priority", "\"Priority\" IN ('Low', 'Medium', 'High')");
-
-                            t.HasCheckConstraint("ck_tasks_title", "length(btrim(\"Title\")) > 0");
-                        });
+                    b.ToTable("tasks", (string)null);
                 });
 #pragma warning restore 612, 618
         }
