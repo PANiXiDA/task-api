@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="../Tasks/PANiXiDA.TaskApi.Tasks.Infrastructure/PANiXiDA.TaskApi.Tasks.Infrastructure.csproj" />
+    <ProjectReference Include="../Tasks/PANiXiDA.TaskApi.Tasks.Presentation/PANiXiDA.TaskApi.Tasks.Presentation.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+</Project>

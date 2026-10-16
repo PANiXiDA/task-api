@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: tasks
+      POSTGRES_USER: tasks
+      POSTGRES_PASSWORD: local-development-only
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tasks -d tasks"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    ports:
+      - "127.0.0.1:${RABBITMQ_UI_PORT:-15672}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: tasks
+      RABBITMQ_DEFAULT_PASS: local-development-only
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /var/lib/rabbitmq/.erlang.cookie && su-exec rabbitmq rabbitmq-diagnostics -q check_running"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: src/PANiXiDA.TaskApi.Host/Dockerfile
+    ports:
+      - "127.0.0.1:${TASK_API_PORT:-8080}:8080"
+    environment:
+      ConnectionStrings__Tasks: Host=postgres;Database=tasks;Username=tasks;Password=local-development-only
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__UserName: tasks
+      RabbitMq__Password: local-development-only
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    stop_grace_period: 10s
+
+volumes:
+  postgres-data:

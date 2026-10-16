@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  tests:
+    uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/dotnet-tests.yml@main
+    secrets:
+      registry-user: ${{ github.actor }}
+      registry-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Build runtime image
+        run: docker build -f src/PANiXiDA.TaskApi.Host/Dockerfile -t task-api:ci .

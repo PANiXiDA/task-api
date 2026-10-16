@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <ProjectReference Include="../../../src/PANiXiDA.TaskApi.Host/PANiXiDA.TaskApi.Host.csproj" />
+        <ProjectReference Include="../../../src/Tasks/PANiXiDA.TaskApi.Tasks.Domain/PANiXiDA.TaskApi.Tasks.Domain.csproj" />
+        <ProjectReference Include="../../../src/Tasks/PANiXiDA.TaskApi.Tasks.Application/PANiXiDA.TaskApi.Tasks.Application.csproj" />
+        <ProjectReference Include="../../../src/Tasks/PANiXiDA.TaskApi.Tasks.Infrastructure/PANiXiDA.TaskApi.Tasks.Infrastructure.csproj" />
+        <ProjectReference Include="../../../src/Tasks/PANiXiDA.TaskApi.Tasks.Presentation/PANiXiDA.TaskApi.Tasks.Presentation.csproj" />
+        <ProjectReference Include="../../PANiXiDA.TaskApi.Testing/PANiXiDA.TaskApi.Testing.csproj" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+        <PackageReference Include="RabbitMQ.Client" />
+    </ItemGroup>
+</Project>

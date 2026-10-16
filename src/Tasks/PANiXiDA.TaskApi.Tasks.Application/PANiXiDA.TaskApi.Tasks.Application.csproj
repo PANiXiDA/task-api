@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <ProjectReference Include="../PANiXiDA.TaskApi.Tasks.Domain/PANiXiDA.TaskApi.Tasks.Domain.csproj" />
+    </ItemGroup>
+</Project>
