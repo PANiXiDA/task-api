@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using PANiXiDA.TaskApi.Tasks.Application.Tasks;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Abstractions;
 using PANiXiDA.TaskApi.Tasks.Domain.Tasks;
 
 namespace PANiXiDA.TaskApi.Tasks.Infrastructure.Persistence;

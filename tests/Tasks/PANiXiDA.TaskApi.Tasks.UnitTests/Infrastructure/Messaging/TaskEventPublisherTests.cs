@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using PANiXiDA.TaskApi.Tasks.Application.Tasks;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Complete;
 using PANiXiDA.TaskApi.Tasks.Domain.Tasks;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Messaging;
 

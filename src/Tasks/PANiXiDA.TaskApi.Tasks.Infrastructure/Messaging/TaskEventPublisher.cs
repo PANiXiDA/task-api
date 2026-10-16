@@ -3,7 +3,8 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using PANiXiDA.TaskApi.Tasks.Application.Tasks;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Abstractions;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Complete;
 
 namespace PANiXiDA.TaskApi.Tasks.Infrastructure.Messaging;
 

@@ -8,7 +8,9 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.TaskApi.Tasks.Domain.Tasks;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Persistence;
-using PANiXiDA.TaskApi.Tasks.Presentation.Tasks;
+using PANiXiDA.TaskApi.Tasks.Presentation.Features.Tasks.Complete;
+using PANiXiDA.TaskApi.Tasks.Presentation.Features.Tasks.Create;
+using PANiXiDA.TaskApi.Tasks.Presentation.Features.Tasks.GetList;
 
 namespace PANiXiDA.TaskApi.Tasks.FunctionalTests;
 
@@ -36,9 +38,9 @@ public sealed class TasksEndpointsTests(FunctionalTestFixture fixture) : IClassF
 
         using var completedResponse = await client.PutAsync($"/tasks/{created.Id}/complete", null, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, completedResponse.StatusCode);
-        var completed = (await completedResponse.Content.ReadFromJsonAsync<TaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
+        var completed = (await completedResponse.Content.ReadFromJsonAsync<CompleteTaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
         var message = await probe.ReadAsync(created.Id);
-        var tasks = (await client.GetFromJsonAsync<TaskResponse[]>("/tasks", JsonOptions, TestContext.Current.CancellationToken))!;
+        var tasks = (await client.GetFromJsonAsync<TaskListItemResponse[]>("/tasks", JsonOptions, TestContext.Current.CancellationToken))!;
         var saved = Assert.Single(tasks, x => x.Id == created.Id);
 
         Assert.True(saved.IsCompleted);
@@ -51,7 +53,7 @@ public sealed class TasksEndpointsTests(FunctionalTestFixture fixture) : IClassF
 
         using var repeated = await client.PutAsync($"/tasks/{created.Id}/complete", null, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Conflict, repeated.StatusCode);
-        var unchanged = Assert.Single((await client.GetFromJsonAsync<TaskResponse[]>("/tasks", JsonOptions, TestContext.Current.CancellationToken))!,
+        var unchanged = Assert.Single((await client.GetFromJsonAsync<TaskListItemResponse[]>("/tasks", JsonOptions, TestContext.Current.CancellationToken))!,
             x => x.Id == created.Id);
         Assert.Equal(saved.CompletedAt, unchanged.CompletedAt);
         await factory.DisposeAsync();
@@ -65,7 +67,7 @@ public sealed class TasksEndpointsTests(FunctionalTestFixture fixture) : IClassF
         using var client = factory.CreateClient();
         using var response = await client.PostAsJsonAsync("/tasks", new { title = new string('a', 200) }, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var task = (await response.Content.ReadFromJsonAsync<TaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
+        var task = (await response.Content.ReadFromJsonAsync<CreateTaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
         Assert.Equal(Priority.Medium, task.Priority);
         Assert.False(task.IsCompleted);
         Assert.Null(task.CompletedAt);
@@ -181,7 +183,7 @@ public sealed class TasksEndpointsTests(FunctionalTestFixture fixture) : IClassF
         using var response = await client.DeleteAsync($"/tasks/{task.Id}", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        var tasks = (await client.GetFromJsonAsync<TaskResponse[]>("/tasks", JsonOptions, TestContext.Current.CancellationToken))!;
+        var tasks = (await client.GetFromJsonAsync<TaskListItemResponse[]>("/tasks", JsonOptions, TestContext.Current.CancellationToken))!;
         Assert.DoesNotContain(tasks, x => x.Id == task.Id);
         using var missing = await client.DeleteAsync($"/tasks/{task.Id}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
@@ -203,11 +205,11 @@ public sealed class TasksEndpointsTests(FunctionalTestFixture fixture) : IClassF
         Assert.Equal(expected, delete.StatusCode);
     }
 
-    private static async Task<TaskResponse> CreateAsync(HttpClient client, string title = "Test task", string priority = "Medium")
+    private static async Task<CreateTaskResponse> CreateAsync(HttpClient client, string title = "Test task", string priority = "Medium")
     {
         using var response = await client.PostAsJsonAsync("/tasks", new { title, priority }, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        return (await response.Content.ReadFromJsonAsync<TaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
+        return (await response.Content.ReadFromJsonAsync<CreateTaskResponse>(JsonOptions, TestContext.Current.CancellationToken))!;
     }
 
     private sealed class RejectCompletion : SaveChangesInterceptor

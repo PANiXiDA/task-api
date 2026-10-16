@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using PANiXiDA.TaskApi.Tasks.Application.Tasks;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Complete;
 using RabbitMQ.Client;
 
 namespace PANiXiDA.TaskApi.Tasks.Infrastructure.Messaging;

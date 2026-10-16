@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PANiXiDA.TaskApi.Tasks.Application.Tasks;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Abstractions;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Complete;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Create;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Delete;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.GetList;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Messaging;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Persistence;
 
@@ -15,7 +19,10 @@ public static class ServiceCollectionExtensions
             ?? throw new InvalidOperationException("ConnectionStrings:Tasks is required.");
         services.AddDbContext<TasksDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<ITasksRepository, TasksRepository>();
-        services.AddScoped<TasksService>();
+        services.AddScoped<CreateTaskHandler>();
+        services.AddScoped<GetTasksHandler>();
+        services.AddScoped<CompleteTaskHandler>();
+        services.AddScoped<DeleteTaskHandler>();
         services.AddSingleton(TimeProvider.System);
         services.AddOptions<RabbitMqOptions>()
             .Bind(configuration.GetSection(RabbitMqOptions.SectionName))

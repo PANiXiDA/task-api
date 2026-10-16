@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using PANiXiDA.TaskApi.Tasks.Application.Tasks;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Abstractions;
 using PANiXiDA.TaskApi.Tasks.Domain.Tasks;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Persistence;
 

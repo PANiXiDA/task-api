@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.DependencyInjection;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Persistence;
-using PANiXiDA.TaskApi.Tasks.Presentation.Tasks;
+using PANiXiDA.TaskApi.Tasks.Presentation.Features.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails();

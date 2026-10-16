@@ -183,6 +183,27 @@ tests/
 
 Host связывает слои через встроенный DI. Application зависит только от Domain; Presentation не обращается к EF или RabbitMQ. Версии NuGet централизованы в `Directory.Packages.props`.
 
+Сценарии сгруппированы по фичам, как в Tactical Heroes API:
+
+```text
+Application/Tasks/
+  Abstractions/   # ITasksRepository, ITaskEventPublisher
+  Common/         # единая точность временных меток
+  Create/         # CreateTaskCommand, CreateTaskHandler
+  GetList/        # GetTasksQuery, GetTasksHandler
+  Complete/       # CompleteTaskCommand, CompleteTaskHandler, результат и событие
+  Delete/         # DeleteTaskCommand, DeleteTaskHandler
+
+Presentation/Features/Tasks/
+  TasksEndpoints.cs  # только регистрация группы /tasks
+  Create/            # endpoint, request, response, mapper
+  GetList/           # endpoint, response, mapper
+  Complete/          # endpoint, response, mapper
+  Delete/            # endpoint, mapper
+```
+
+Каждый endpoint вызывает свой обработчик Application через встроенный DI. Mapper переводит входные данные в команду/запрос, а результат — в DTO ответа своей фичи. Unit-тесты обработчиков размещены в соответствующих папках `Application/Tasks/Create` и `Application/Tasks/Complete`.
+
 `TaskItem.RowVersion` имеет тип `uint` и настроен через `IsRowVersion()`: Npgsql использует системную колонку PostgreSQL `xmin`. EF добавляет исходную версию в условие UPDATE; `DbUpdateConcurrencyException` преобразуется в `409`. Для двух запросов, прочитавших одну версию строки, сохраняется только один результат. Подробнее: [Npgsql concurrency tokens](https://www.npgsql.org/efcore/modeling/concurrency.html).
 
 ## RabbitMQ и остановка
@@ -215,7 +236,7 @@ dotnet test
 
 | Проект | Что проверяет |
 | --- | --- |
-| `UnitTests` | Инварианты `TaskItem`, время и порядок сохранения/публикации в `TasksService`, конфликты, ошибки и отмена, очередь publisher и остановка. Внешние сервисы не нужны. |
+| `UnitTests` | Инварианты `TaskItem`, время и порядок сохранения/публикации в обработчиках фич, конфликты, ошибки и отмена, очередь publisher и остановка. Внешние сервисы не нужны. |
 | `IntegrationTests` | Репозиторий и миграции на настоящем PostgreSQL: сортировка, ограничения, `xmin`, удаление. Контракт события и повторное соединение транспорта с настоящим RabbitMQ. |
 | `FunctionalTests` | HTTP API через `WebApplicationFactory`: статусы, валидация, значения по умолчанию, CRUD, реальное событие, недоступный брокер и конкурентное завершение. |
 

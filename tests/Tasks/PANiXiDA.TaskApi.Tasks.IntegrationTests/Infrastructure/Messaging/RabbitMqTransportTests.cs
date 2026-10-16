@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.TaskApi.Testing;
-using PANiXiDA.TaskApi.Tasks.Application.Tasks;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Complete;
 using PANiXiDA.TaskApi.Tasks.Domain.Tasks;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Messaging;
 using RabbitMQ.Client;

@@ -1,4 +1,4 @@
-using PANiXiDA.TaskApi.Tasks.Application.Tasks;
+using PANiXiDA.TaskApi.Tasks.Application.Tasks.Complete;
 
 namespace PANiXiDA.TaskApi.Tasks.Infrastructure.Messaging;
 
