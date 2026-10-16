@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Persistence;
 
 namespace PANiXiDA.TaskApi.Tasks.FunctionalTests;
@@ -11,10 +12,15 @@ namespace PANiXiDA.TaskApi.Tasks.FunctionalTests;
 public sealed class ApiFactory(Dictionary<string, string?> settings, SaveChangesInterceptor? interceptor = null, int? rabbitMqPort = null)
     : WebApplicationFactory<Program>
 {
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        builder.ConfigureHostConfiguration(configuration => configuration.AddInMemoryCollection(settings));
+        return base.CreateHost(builder);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(settings));
         if (rabbitMqPort is not null)
         {
             builder.ConfigureAppConfiguration((_, configuration) =>
