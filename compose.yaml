@@ -19,7 +19,7 @@ services:
       RABBITMQ_DEFAULT_USER: tasks
       RABBITMQ_DEFAULT_PASS: local-development-only
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ["CMD-SHELL", "test -s /var/lib/rabbitmq/.erlang.cookie && su-exec rabbitmq rabbitmq-diagnostics -q check_running"]
       interval: 3s
       timeout: 5s
       retries: 30
