@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Build and test in Docker
+        run: docker compose -p task-api-tests -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from tests
+      - name: Build runtime image
+        run: docker build -f src/PANiXiDA.TaskApi.Host/Dockerfile -t task-api:ci .
+      - name: Clean up test containers
+        if: always()
+        run: docker compose -p task-api-tests -f compose.test.yaml down -v

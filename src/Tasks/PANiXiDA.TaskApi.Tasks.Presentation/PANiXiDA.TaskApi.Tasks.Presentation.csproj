@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <ProjectReference Include="../PANiXiDA.TaskApi.Tasks.Application/PANiXiDA.TaskApi.Tasks.Application.csproj" />
+        <ProjectReference Include="../PANiXiDA.TaskApi.Tasks.Domain/PANiXiDA.TaskApi.Tasks.Domain.csproj" />
+    </ItemGroup>
+</Project>
