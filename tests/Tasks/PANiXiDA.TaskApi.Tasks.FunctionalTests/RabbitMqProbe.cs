@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PANiXiDA.TaskApi.Testing;
 using PANiXiDA.TaskApi.Tasks.Application.Tasks;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Messaging;
 using RabbitMQ.Client;
@@ -13,20 +14,21 @@ internal sealed class RabbitMqProbe(IConnection connection, IChannel channel, st
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static async Task<RabbitMqProbe> CreateAsync()
+    public static async Task<RabbitMqProbe> CreateAsync(RabbitMqTestBroker broker)
     {
         var factory = new ConnectionFactory
         {
-            HostName = Environment.GetEnvironmentVariable("RabbitMq__HostName")!,
-            UserName = Environment.GetEnvironmentVariable("RabbitMq__UserName")!,
-            Password = Environment.GetEnvironmentVariable("RabbitMq__Password")!,
+            HostName = broker.HostName,
+            Port = broker.Port,
+            UserName = RabbitMqTestBroker.UserName,
+            Password = RabbitMqTestBroker.Password,
             AutomaticRecoveryEnabled = false
         };
-        var connection = await factory.CreateConnectionAsync();
-        var channel = await connection.CreateChannelAsync();
-        await channel.ExchangeDeclareAsync(RabbitMqOptions.Exchange, ExchangeType.Topic, durable: true);
-        var queue = await channel.QueueDeclareAsync();
-        await channel.QueueBindAsync(queue.QueueName, RabbitMqOptions.Exchange, RabbitMqOptions.RoutingKey);
+        var connection = await factory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await channel.ExchangeDeclareAsync(RabbitMqOptions.Exchange, ExchangeType.Topic, durable: true, cancellationToken: TestContext.Current.CancellationToken);
+        var queue = await channel.QueueDeclareAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await channel.QueueBindAsync(queue.QueueName, RabbitMqOptions.Exchange, RabbitMqOptions.RoutingKey, cancellationToken: TestContext.Current.CancellationToken);
         return new RabbitMqProbe(connection, channel, queue.QueueName);
     }
 
@@ -61,9 +63,9 @@ internal sealed class RabbitMqProbe(IConnection connection, IChannel channel, st
 
     public async ValueTask DisposeAsync()
     {
-        await channel.CloseAsync();
+        await channel.CloseAsync(TestContext.Current.CancellationToken);
         await channel.DisposeAsync();
-        await connection.CloseAsync();
+        await connection.CloseAsync(TestContext.Current.CancellationToken);
         await connection.DisposeAsync();
     }
 }

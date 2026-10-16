@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+    <IncludeTestAssembly>false</IncludeTestAssembly>
+    <ExcludeAssembliesWithoutSources>MissingAll</ExcludeAssembliesWithoutSources>
+    <CodeCoverage>
+        <ModulePaths>
+            <Exclude>
+                <ModulePath>.*[\\/]PANiXiDA\.TaskApi\..*Tests\.dll$</ModulePath>
+                <ModulePath>.*[\\/]PANiXiDA\.TaskApi\.Testing\.dll$</ModulePath>
+            </Exclude>
+        </ModulePaths>
+        <Sources>
+            <Exclude>
+                <Source>.*[\\/]obj[\\/].*</Source>
+                <Source>.*[\\/]Migrations[\\/].*</Source>
+            </Exclude>
+        </Sources>
+    </CodeCoverage>
+</Configuration>

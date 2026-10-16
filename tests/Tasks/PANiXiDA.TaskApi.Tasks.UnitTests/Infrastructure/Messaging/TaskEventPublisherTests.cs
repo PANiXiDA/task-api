@@ -6,11 +6,11 @@ using PANiXiDA.TaskApi.Tasks.Application.Tasks;
 using PANiXiDA.TaskApi.Tasks.Domain.Tasks;
 using PANiXiDA.TaskApi.Tasks.Infrastructure.Messaging;
 
-namespace PANiXiDA.TaskApi.Tasks.FunctionalTests;
+namespace PANiXiDA.TaskApi.Tasks.UnitTests.Infrastructure.Messaging;
 
 public sealed class TaskEventPublisherTests
 {
-    [Fact]
+    [Fact(DisplayName = "Остановка отправляет начатое и ожидающие события до закрытия соединения")]
     public async Task Stop_Should_DrainStartedAndQueuedPublications_Before_ClosingTransport()
     {
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -21,24 +21,24 @@ public sealed class TaskEventPublisherTests
             await release.Task.WaitAsync(token);
         });
         using var publisher = CreatePublisher(transport);
-        await publisher.StartAsync(CancellationToken.None);
+        await publisher.StartAsync(TestContext.Current.CancellationToken);
         var first = Message();
         var second = Message();
         publisher.Publish(first);
-        await entered.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
         publisher.Publish(second);
 
-        var stopping = publisher.StopAsync(CancellationToken.None);
+        var stopping = publisher.StopAsync(TestContext.Current.CancellationToken);
         Assert.False(stopping.IsCompleted);
         Assert.False(transport.Closed);
         release.SetResult();
-        await stopping.WaitAsync(TimeSpan.FromSeconds(5));
+        await stopping.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
         Assert.Equal([first, second], transport.Messages.ToArray());
         Assert.True(transport.Closed);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Ошибка отправки записывает событие в лог и не мешает следующей публикации")]
     public async Task Publish_Should_LogPayloadAndContinue_When_TransportFails()
     {
         var first = Message();
@@ -47,11 +47,11 @@ public sealed class TaskEventPublisherTests
         var transport = new RecordingTransport((message, _) =>
             message == first ? Task.FromException(new IOException("Broker unavailable")) : Task.CompletedTask);
         using var publisher = CreatePublisher(transport, logger);
-        await publisher.StartAsync(CancellationToken.None);
+        await publisher.StartAsync(TestContext.Current.CancellationToken);
 
         publisher.Publish(first);
         publisher.Publish(second);
-        await publisher.StopAsync(CancellationToken.None);
+        await publisher.StopAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(second, Assert.Single(transport.Messages));
         Assert.Contains(logger.Messages, x => x.Contains(first.TaskId.ToString(), StringComparison.Ordinal)
@@ -59,7 +59,7 @@ public sealed class TaskEventPublisherTests
         Assert.True(transport.Closed);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Переполнение или остановка очереди записывает неотправленное событие в лог")]
     public async Task Publish_Should_LogDroppedEvent_When_QueueIsFullOrStopped()
     {
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -71,15 +71,15 @@ public sealed class TaskEventPublisherTests
             await release.Task.WaitAsync(token);
         });
         using var publisher = CreatePublisher(transport, logger, capacity: 1);
-        await publisher.StartAsync(CancellationToken.None);
+        await publisher.StartAsync(TestContext.Current.CancellationToken);
         publisher.Publish(Message());
-        await entered.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
         publisher.Publish(Message());
         var overflow = Message();
 
         publisher.Publish(overflow);
         release.SetResult();
-        await publisher.StopAsync(CancellationToken.None);
+        await publisher.StopAsync(TestContext.Current.CancellationToken);
         var afterStop = Message();
         publisher.Publish(afterStop);
 
@@ -88,7 +88,7 @@ public sealed class TaskEventPublisherTests
         Assert.Contains(logger.Messages, x => x.Contains(afterStop.TaskId.ToString(), StringComparison.Ordinal));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Остановка отменяет зависшие публикации и закрывает соединение за пять секунд")]
     public async Task Stop_Should_CancelHungPublicationsAndClose_Within_ShutdownBudget()
     {
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -99,16 +99,16 @@ public sealed class TaskEventPublisherTests
         });
         var logger = new RecordingLogger();
         using var publisher = CreatePublisher(transport, logger);
-        await publisher.StartAsync(CancellationToken.None);
+        await publisher.StartAsync(TestContext.Current.CancellationToken);
         var events = Enumerable.Range(0, 5).Select(_ => Message()).ToArray();
         foreach (var message in events)
         {
             publisher.Publish(message);
         }
 
-        await entered.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
         var elapsed = Stopwatch.StartNew();
-        await publisher.StopAsync(CancellationToken.None);
+        await publisher.StopAsync(TestContext.Current.CancellationToken);
 
         Assert.True(elapsed.Elapsed < TimeSpan.FromSeconds(5), $"Shutdown took {elapsed.Elapsed}.");
         Assert.True(transport.Closed);

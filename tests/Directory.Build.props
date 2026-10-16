@@ -1,0 +1,15 @@
+<Project>
+    <Import Project="../Directory.Build.props" />
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <IsTestProject Condition="$(MSBuildProjectName.EndsWith('Tests'))">true</IsTestProject>
+        <OutputType Condition="'$(IsTestProject)' == 'true'">Exe</OutputType>
+        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --coverage-settings "$(MSBuildThisFileDirectory)CodeCoverage.settings.xml"</TestingPlatformCommandLineArguments>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+        <PackageReference Include="xunit.v3" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+        <Using Include="Xunit" />
+    </ItemGroup>
+</Project>

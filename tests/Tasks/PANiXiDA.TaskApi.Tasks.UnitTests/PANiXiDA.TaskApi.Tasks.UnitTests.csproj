@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <ProjectReference Include="../../../src/Tasks/PANiXiDA.TaskApi.Tasks.Domain/PANiXiDA.TaskApi.Tasks.Domain.csproj" />
+        <ProjectReference Include="../../../src/Tasks/PANiXiDA.TaskApi.Tasks.Application/PANiXiDA.TaskApi.Tasks.Application.csproj" />
+        <ProjectReference Include="../../../src/Tasks/PANiXiDA.TaskApi.Tasks.Infrastructure/PANiXiDA.TaskApi.Tasks.Infrastructure.csproj" />
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="NSubstitute" />
+    </ItemGroup>
+</Project>

@@ -7,3 +7,4 @@
 *.user
 *.suo
 artifacts/
+tests-report/
